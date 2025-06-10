@@ -1,4 +1,4 @@
-import * as core from '@actions/core'; // Import GitHub Actions package for accessing secrets
+import core = require("@actions/core"); // Import GitHub Actions package for accessing secrets
 
 export function isPredefinedVariable(variable: string): boolean {
     let predefinedVarPrefix = ['runner.', 'azure_http_user_agent', 'common.', 'system.'];
