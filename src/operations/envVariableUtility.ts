@@ -1,3 +1,5 @@
+import * as core from '@actions/core'; // Import GitHub Actions package for accessing secrets
+
 export function isPredefinedVariable(variable: string): boolean {
     let predefinedVarPrefix = ['runner.', 'azure_http_user_agent', 'common.', 'system.'];
     for(let varPrefix of predefinedVarPrefix) {
@@ -11,11 +13,34 @@ export function isPredefinedVariable(variable: string): boolean {
 export function getVariableMap() {
     let variableMap = new Map();
     let variables = process.env;
+
+    // Include environment variables
     Object.keys(variables).forEach(key => {
         if(!isPredefinedVariable(key)) {
             variableMap.set(key, variables[key]);
         }
     });
+
+    // Include repository variables
+    if (process.env.GITHUB_ENV) {
+        process.env.GITHUB_ENV.split('\n').forEach(varEntry => {
+            let [key, value] = varEntry.split('=');
+            if (key && value) {
+                variableMap.set(key.trim(), value.trim());
+            }
+        });
+    }
+
+    // Include secrets
+    Object.keys(process.env).forEach(secret => {
+        if (secret.startsWith('SECRET_')) {
+            let secretValue = core.getInput(secret);
+            if (secretValue) {
+                variableMap.set(secret, secretValue);
+            }
+        }
+    });    
+    
     return variableMap;
 }
 
